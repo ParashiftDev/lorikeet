@@ -9,31 +9,32 @@ readme = "README.md"
 edition = "2018"
 
 [dependencies]
-petgraph = "0.5.1"
+petgraph = "0.6.5"
 serde = { version = "1.0", features = ["derive"] }
-serde_yaml = "0.8.16"
-linked-hash-map = { version = "0.5.4", features = ["serde_impl"] }
-tera = "1.6.1"
-structopt = "0.3.21"
-log = "0.4.14"
-colored = "2.0.0"
+serde_yaml = "0.9.34"
+linked-hash-map = { version = "0.5.6", features = ["serde_impl"] }
+tera = "1.20.0"
+structopt = "0.3.26"
+log = "0.4.22"
+colored = "2.1.0"
 atty = "0.2.14"
-regex = "1.4.3"
-env_logger = "0.8.2"
-reqwest = {version = "0.11.0", features = ["json", "stream", "multipart"] }
-chrono = { version = "0.4.19", features = ["serde"] }
-lazy_static = "1.4.0"
+regex = "1.11.1"
+env_logger = "0.11.5"
+reqwest = {version = "0.11", features = ["json", "stream", "multipart"] }
+native-tls = "0.2.12"
+chrono = { version = "0.4.39", features = ["serde"] }
+lazy_static = "1.5.0"
 chashmap = "2.2.2"
-hostname = "0.3.1"
-sys-info = "0.8.0"
-openssl-probe = "0.1.2"
+hostname = "0.4.0"
+sys-info = "0.9.1"
+# openssl-probe = "0.1.5"
 # jmespath = "0.3.0"
 jmespath = { git = "https://github.com/ParashiftDev/jmespath.rs", branch = "master" }
-anyhow = "1.0.38"
+anyhow = "1.0.94"
 serde_json = "1.0"
-quick-xml = "0.21.0"
-cookie = "0.14.3"
+quick-xml = "0.37.1"
+cookie = "0.18.1"
 tokio = {version = "1.0", features = ["full"]}
-tokio-util = {version = "0.6", features= ["codec"]}
+tokio-util = {version = "0.7.13", features= ["codec"]}
 libc = "0.2.86"
 futures = "0.3.15"
