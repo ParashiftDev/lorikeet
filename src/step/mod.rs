@@ -18,7 +18,7 @@ use tera::{Context, Tera};
 
 use std::{borrow::Cow, collections::HashMap};
 
-use jmespatch::{self, Variable};
+use jmespath::{self, Variable};
 
 use lazy_static::lazy_static;
 use log::debug;
@@ -241,10 +241,10 @@ impl FilterType {
         match *self {
             FilterType::NoOutput => Ok(String::from("")),
             FilterType::JmesPath(ref jmes) => {
-                let expr = jmespatch::compile(jmes)
+                let expr = jmespath::compile(jmes)
                     .map_err(|err| format!("Could not compile jmespath:{}", err))?;
 
-                let data = jmespatch::Variable::from_json(val)
+                let data = jmespath::Variable::from_json(val)
                     .map_err(|err| format!("Could not format as json:{}", err))?;
 
                 let result = expr
