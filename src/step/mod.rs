@@ -18,7 +18,7 @@ use tera::{Context, Tera};
 
 use std::{borrow::Cow, collections::HashMap};
 
-use jmespath::{self, Variable};
+use jmespatch::{self, Variable};
 
 use lazy_static::lazy_static;
 use log::debug;
@@ -29,8 +29,6 @@ use chashmap::CHashMap;
 pub struct Outcome {
     pub output: Option<String>,
     pub error: Option<String>,
-    pub on_fail_output: Option<String>,
-    pub on_fail_error: Option<String>,
     pub duration: Duration,
 }
 
@@ -46,7 +44,6 @@ pub struct Step {
     pub name: String,
     pub description: Option<String>,
     pub run: RunType,
-    pub on_fail: Option<RunType>,
     pub filters: Vec<FilterType>,
     pub expect: ExpectType,
     pub do_output: bool,
@@ -94,7 +91,6 @@ impl RunType {
         expect: ExpectType,
         filters: Vec<FilterType>,
         retry: RetryPolicy,
-        on_fail: Option<RunType>,
     ) -> Outcome {
         let start = Instant::now();
 
@@ -108,8 +104,6 @@ impl RunType {
 
         let mut output = String::new();
         let mut error = String::new();
-        let mut on_fail_output = None;
-        let mut on_fail_error = None;
         let mut successful = false;
 
         'retry: for count in 0..try_count {
@@ -126,8 +120,6 @@ impl RunType {
 
             output = String::new();
             error = String::new();
-            on_fail_output = None;
-            on_fail_error = None;
 
             //Run the runner first
             match self.run().await {
@@ -166,17 +158,6 @@ impl RunType {
                     break 'retry;
                 }
             }
-
-            if !successful {
-                if let Some(ref on_fail_runner) = on_fail {
-                    match on_fail_runner.run().await {
-                        Ok(val) => {
-                            on_fail_output = Some(val);
-                        }
-                        Err(val) => on_fail_error = Some(val),
-                    }
-                }
-            }
         }
 
         let output_opt = match output.as_ref() {
@@ -190,13 +171,11 @@ impl RunType {
         };
 
         //Default Return
-        Outcome {
+        return Outcome {
             output: output_opt,
             error: error_opt,
             duration: start.elapsed(),
-            on_fail_output,
-            on_fail_error,
-        }
+        };
     }
 
     async fn run(&self) -> Result<String, String> {
@@ -262,10 +241,10 @@ impl FilterType {
         match *self {
             FilterType::NoOutput => Ok(String::from("")),
             FilterType::JmesPath(ref jmes) => {
-                let expr = jmespath::compile(jmes)
+                let expr = jmespatch::compile(jmes)
                     .map_err(|err| format!("Could not compile jmespath:{}", err))?;
 
-                let data = Variable::from_json(val)
+                let data = jmespatch::Variable::from_json(val)
                     .map_err(|err| format!("Could not format as json:{}", err))?;
 
                 let result = expr
