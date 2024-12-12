@@ -21,7 +21,7 @@ pub fn create_junit(
 
     let mut writer = Writer::new_with_indent(file, b' ', 4);
 
-    writer.write_event(Event::Decl(BytesDecl::new(b"1.0", Some(b"UTF-8"), None)))?;
+    writer.write_event(Event::Decl(BytesDecl::new("1.0", Some("UTF-8"), None)))?;
 
     // Add in the testsuite elem
 
@@ -48,7 +48,8 @@ pub fn create_junit(
             .unwrap_or_else(|_| String::from("")),
     };
 
-    let mut testsuite = BytesStart::borrowed(b"testsuite", b"testsuite".len());
+    let testsuite_content = "testsuite";
+    let mut testsuite = BytesStart::from_content(testsuite_content, testsuite_content.len());
 
     testsuite.push_attribute(("name", "lorikeet"));
     testsuite.push_attribute(("hostname", &*hostname));
@@ -61,7 +62,8 @@ pub fn create_junit(
     writer.write_event(Event::Start(testsuite))?;
 
     for result in results.iter() {
-        let mut testcase = BytesStart::borrowed(b"testcase", b"testcase".len());
+        let testcase_content = "testcase";
+        let mut testcase = BytesStart::from_content(testcase_content, testcase_content.len());
 
         testcase.push_attribute(("name", &*result.name));
 
@@ -75,43 +77,47 @@ pub fn create_junit(
 
         writer.write_event(Event::Start(testcase))?;
 
-        writer.write_event(Event::Start(BytesStart::borrowed(
-            b"system-out",
-            b"system-out".len(),
+        let system_out_content = "system-out";
+
+        writer.write_event(Event::Start(BytesStart::from_content(
+            system_out_content,
+            system_out_content.len(),
         )))?;
 
-        writer.write_event(Event::Text(BytesText::from_plain_str(
+        writer.write_event(Event::Text(BytesText::new(
             &filter_invalid_chars(&result.output),
         )))?;
 
-        writer.write_event(Event::End(BytesEnd::borrowed(b"system-out")))?;
+        writer.write_event(Event::End(BytesEnd::new(system_out_content)))?;
 
         if !result.pass {
             let error_text = result.error.as_deref().unwrap_or("");
 
             if error_text == "Dependency Not Met" {
-                let mut skipped = BytesStart::borrowed(b"skipped", b"skipped".len());
+                let skipped_content = "skipped";
+                let mut skipped = BytesStart::from_content(skipped_content, skipped_content.len());
                 skipped.push_attribute(("message", "Dependency Not Met"));
 
                 writer.write_event(Event::Start(skipped))?;
 
-                writer.write_event(Event::End(BytesEnd::borrowed(b"skipped")))?;
+                writer.write_event(Event::End(BytesEnd::new(skipped_content)))?;
             } else {
-                let mut failure = BytesStart::borrowed(b"failure", b"failure".len());
+                let failure_content = "failure";
+                let mut failure = BytesStart::from_content(failure_content, failure_content.len());
                 failure.push_attribute(("message", "Step failed to finish"));
 
                 writer.write_event(Event::Start(failure))?;
-                writer.write_event(Event::Text(BytesText::from_plain_str(
+                writer.write_event(Event::Text(BytesText::new(
                     &filter_invalid_chars(&error_text),
                 )))?;
-                writer.write_event(Event::End(BytesEnd::borrowed(b"failure")))?;
+                writer.write_event(Event::End(BytesEnd::new(failure_content)))?;
             }
         }
 
-        writer.write_event(Event::End(BytesEnd::borrowed(b"testcase")))?;
+        writer.write_event(Event::End(BytesEnd::new(testcase_content)))?;
     }
 
-    writer.write_event(Event::End(BytesEnd::borrowed(b"testsuite")))?;
+    writer.write_event(Event::End(BytesEnd::new(testsuite_content)))?;
 
     Ok(())
 }
