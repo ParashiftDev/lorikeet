@@ -1,10 +1,7 @@
 use serde::{Deserialize, Serialize};
-#[cfg(not(target_os = "windows"))]
 use std::cmp;
 
-#[cfg(not(target_os = "windows"))]
 use log::*;
-#[cfg(not(target_os = "windows"))]
 use std::{ffi::CString, mem::zeroed};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -64,7 +61,7 @@ impl DiskVariant {
 
         let stavfs = get_stats(&diskops)?;
 
-        Ok(stavfs)
+        return Ok(stavfs);
     }
 }
 
@@ -91,8 +88,8 @@ pub fn get_stats(ops: &DiskOptions) -> Result<String, String> {
         stats.f_blocks, stats.f_bsize, stats.f_frsize, stats.f_bavail, stats.f_bfree
     );
 
-    let size = stats.f_blocks as usize * stats.f_frsize as usize;
-    let free = stats.f_bavail as usize * stats.f_frsize as usize;
+    let size = stats.f_blocks * stats.f_frsize;
+    let free = stats.f_bavail * stats.f_frsize;
     let used = size - free;
 
     debug!("size: {}, free:{}, used:{}", size, free, used);
@@ -122,11 +119,10 @@ pub fn get_stats(ops: &DiskOptions) -> Result<String, String> {
 }
 
 #[cfg(target_os = "windows")]
-pub fn get_stats(_ops: &DiskOptions) -> Result<String, String> {
+pub fn get_stats(_ops: &DiskOptions) -> Result<u64, String> {
     return Err("Not Implemented Yet".into());
 }
 
-#[cfg(not(target_os = "windows"))]
 pub fn pretty_bytes(num: f64) -> String {
     let negative = if num.is_sign_positive() { "" } else { "-" };
     let num = num.abs();
